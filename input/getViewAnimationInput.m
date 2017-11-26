@@ -1,0 +1,9 @@
+function value = getViewAnimationInput
+value.file = '';
+value.deltaT = 0.1;
+value.thicknessMultiplier = 1;
+value.refractoryDuration = 5;
+value.excitatoryProb = 0.01;
+value.inhibitoryProb = 0;
+value.attenuationProb = 0.01;
+value.showTimes = false;
