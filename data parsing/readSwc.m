@@ -10,18 +10,21 @@ type = validateParameters(file);
 id = openFile(file, type);
 
 %% Find data
-reachedData = false;
+% Go through document until reaching the first line of data (i.e. go past
+% the comments)
+
+reachedData = false; 
 
 while ~reachedData
     thisLine = fgetl(id);
     if (thisLine == -1)
         % reached end of document
-        error('No data found')
+        error('No data found.')
     elseif isempty(thisLine)
-        % empty line
+        % this line is empty
         continue;
     elseif strcmp(thisLine(1),'#')
-        % is comment
+        % this line is a comment
         continue;
     else
         % must have reached data!
@@ -32,12 +35,16 @@ end
 % thisLine now contains the first row of data
 
 %% Parse data
+% Treat each line individually until reaching the end of the document, and
+% write the data to a new row in the result array
 
-a = zeros(1,7); % extract 7 pieces of information per line of data
+result = nan(1,7); % extract 7 pieces of information per line of data
 i = 0;
 reachedEnd = false;
+
 while ~reachedEnd
-    % check if end is reached
+    
+    % check if end of document has been reached
     if isequal(thisLine,-1) || isempty(thisLine)
         reachedEnd = true;
         continue;
@@ -46,14 +53,14 @@ while ~reachedEnd
     i = i + 1;
     thisLineVector = parseLine(thisLine); % convert from string representation to vector
     verifyLineVector(thisLineVector,i);
-    a(i,:) = thisLineVector;
+    result(i,:) = thisLineVector;
     
-    % read next line
-    thisLine = fgetl(id);
+    thisLine = fgetl(id); % read next line
+    
 end
 
 %% Declare output
-output = a;
+output = result;
 end
 
 
@@ -98,14 +105,14 @@ function [file, path] = openDialog()
 [file, path] = uigetfile('.swc','Select .swc file');
 
 if isequal(file,0) || isequal(path,0)
-    error('Action cancelled by user');
+    error('Action cancelled by user.');
 end
 
 end
 
-function v = parseLine(line)
+function vector = parseLine(line)
 
-v = str2num(line);  %#ok<ST2NM>
+vector = str2num(line);
 % for large data sets, may have to modify this by converting the 1st,
 % 2nd and last columns into uint types to save memory
 
@@ -114,13 +121,13 @@ end
 function verifyLineVector(v,k)
 
 if any(isnan(v)) || isempty(v)
-    error('Unable to parse compartment id: %i',k)
+    error('Unable to parse line at compartment id: %i (parsing error).', k)
 elseif v(1) ~= k
-    warning('Compartment id out of sync at id: %i',k);
+    warning('Line at compartment id out of sync at id: %i (should be %i).', k, v(7));
 elseif v(7) >= k
-    warning('Unexpected parent compartment at id: %i',k);
-elseif length(v) ~= 7 % check that there are 7 pieces of information in each line
-    error('Unable to parse compartment id: %i since the format is unexpected',k);
+    error('Unexpected parent compartment at id: %i (should be less than %i).', k, v(7));
+elseif length(v) ~= 7
+    error('Unable to parse line at compartment id: %i (expecting 7 values, but found %i).', k, lenth(v));
 end
 
 % if this line is reached, parsing must have been successful!
