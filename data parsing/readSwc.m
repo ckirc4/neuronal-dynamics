@@ -1,26 +1,25 @@
-function output = readSwc(fileName)
+function output = readSwc(file)
 % reads the SWC file and outputs it as a n*7 matrix
 
-%% Initialisation and housekeeping
-% TO DO: LOOP
-if nargin == 1
+%% Find and open file
+if nargin == 1 % file specified
     % type 1 = file, type 2 = url
-    type = validateParameters(fileName);
-    [id, success] = openFile(fileName, type);
+    type = validateParameters(file);
+    [id, success] = openFile(file, type);
 end
 
 if nargin == 0 || ~success
-    [fileName, filePath] = openDialog();
+    [file, filePath] = openDialog();
     try
-        validateParameters(fileName, 1);
-        [id, success] = openFile([filePath fileName]);
+        validateParameters(file, 1);
+        [id, success] = openFile([filePath file]);
     catch
         success = 0; 
     end
     if ~success
         error('The file could not be opened');
     end
-    fprintf('readSwc(''%s'')\n',fileName);
+    fprintf('readSwc(''%s'')\n',file);
 end
 
 %% Find data
@@ -71,23 +70,25 @@ output = a;
 end
 
 
-function type = validateParameters(p)
-% verifies that the input is a string and in the form x.swc, url URL
-if ~ischar(p)
+function type = validateParameters(file)
+% verifies that the input is a string and in the form x.swc
+if ~ischar(file)
     error('Input must be a string')
-elseif ~strcmp(p(end-3:end),'.swc')
+elseif ~strcmp(file(end-3:end),'.swc')
     error('File name must end in ".swc"')
-elseif length(p) < 5
+elseif length(file) < 5
     error('File not specified')
 end
 
-if strcmp(p(1:7),'http://')
-    type = 2;
+if contains(file,'neuromorpho.org')
+    type = 'url';
 else
-    type = 1;
+    type = 'local';
 end
 
 end
+
+
 function [fileID, success] = openFile(name, type)
 
 success = true;
