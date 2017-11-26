@@ -7,7 +7,7 @@ if nargin == 0
 end
 
 type = validateParameters(file);
-id = openFile(file, type);
+[id, file] = openFile(file, type);
 
 %% Find data
 % Go through document until reaching the first line of data (i.e. go past
@@ -19,7 +19,7 @@ while ~reachedData
     thisLine = fgetl(id);
     if (thisLine == -1)
         % reached end of document
-        error('No data found.')
+        showError(sprintf('No data found.'), id);
     elseif isempty(thisLine)
         % this line is empty
         continue;
@@ -52,26 +52,34 @@ while ~reachedEnd
     
     i = i + 1;
     thisLineVector = parseLine(thisLine); % convert from string representation to vector
-    verifyLineVector(thisLineVector,i);
+    verifyLineVector(thisLineVector, i, id);
     result(i,:) = thisLineVector;
     
     thisLine = fgetl(id); % read next line
     
 end
 
-%% Declare output
+%% Finish
+if strcmp(type, 'url')
+    cleanUp(id, file);
+else
+   cleanUp(id); 
+end
+
 output = result;
+
 end
 
 
 function type = validateParameters(file)
 % verifies that the input is a string and in the form x.swc
+
 if ~ischar(file)
-    error('Input must be a string')
+    showError(sprintf('Input must be a string.'));
 elseif ~strcmp(file(end-3:end),'.swc')
-    error('File name must end in ".swc"')
+    showError(sprintf('File name must end in ".swc".'));
 elseif length(file) < 5
-    error('File not specified')
+    showError(sprintf('File not specified.'));
 end
 
 if contains(file,'neuromorpho.org')
@@ -82,31 +90,33 @@ end
 
 end
 
-function fileID = openFile(file, type)
+function [id, file] = openFile(file, type)
 
-if type == 'url'
+if strcmp(type, 'url')
     % save website to temporary .swc file
     url = file;
-    file_temp = 'temp.swc';
-    file = websave(file_temp,url);
+    file = websave('temp.swc', url);
 end
 
-fileID = fopen(file);
-delete(file_temp);
+id = fopen(file);
 
-if (fileID == -1)
-    error('Specified file could not be found.')
+if (id == -1 && strcmp(type, 'url'))
+    showError('Content could not be found/downloaded.', id, file);
+elseif (id == -1)
+    showError('Specified file could not be found.');
 end
 
 end
 
-function [file, path] = openDialog()
+function file = openDialog()
 
 [file, path] = uigetfile('.swc','Select .swc file');
 
 if isequal(file,0) || isequal(path,0)
-    error('Action cancelled by user.');
+    showError(sprintf('Action cancelled by user.'));
 end
+
+file = [path file];
 
 end
 
@@ -118,18 +128,46 @@ vector = str2num(line);
 
 end
 
-function verifyLineVector(v,k)
+function verifyLineVector(v, k, id)
 
 if any(isnan(v)) || isempty(v)
-    error('Unable to parse line at compartment id: %i (parsing error).', k)
+    showError(sprintf('Unable to parse line at compartment id: %i (parsing error).', k), id);
 elseif v(1) ~= k
-    warning('Line at compartment id out of sync at id: %i (should be %i).', k, v(7));
+    showError(sprintf('Line at compartment id out of sync at id: %i (should be %i).', k, v(7)), id);
 elseif v(7) >= k
-    error('Unexpected parent compartment at id: %i (should be less than %i).', k, v(7));
+    showError(sprintf('Unexpected parent compartment at id: %i (should be less than %i).', k, v(7)), id);
 elseif length(v) ~= 7
-    error('Unable to parse line at compartment id: %i (expecting 7 values, but found %i).', k, lenth(v));
+    showError(sprintf('Unable to parse line at compartment id: %i (expecting 7 values, but found %i).', k, lenth(v)), id);
 end
 
 % if this line is reached, parsing must have been successful!
+
+end
+
+function cleanUp(fileID, tempFile)
+% Close file dependency and deletes temp file if applicable
+
+if (nargin >= 1)
+    fclose(fileID);
+end
+
+if (nargin == 2)
+    delete(tempFile);
+end
+
+end
+
+function showError(errorMsg, fileID, tempFile)
+
+if (nargin == 3)
+    cleanUp(fileID, tempFile);
+elseif (nargin == 2)
+    cleanUp(fileID);
+end
+
+% show error message
+if (nargin >= 1)
+    error(errorMsg);
+end
 
 end
