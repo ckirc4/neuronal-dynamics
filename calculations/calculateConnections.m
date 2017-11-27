@@ -37,10 +37,11 @@ for i = 1:nNodes-1
                 thisNode = N(nodeIndex); % the node number we are considering now
                 if nodes(thisNode,col) == 0 % whether the relevant position in the nodes array is occupied yet
                     nodes(thisNode,col) = i; % this node is connected by the i'th compartment
+                    assigned(nodeIndex) = true;
                 elseif (col == maxCompartments && nodes(thisNode,col) ~= 0) % have reached the max column, but this node hasn't been assigned yet
                     nodes(thisNode,col+1) = i; % this row of cP is filled up, so extend it
+                    assigned(nodeIndex) = true;
                 end
-                assigned(nodeIndex) = true;
             end
             
         end
