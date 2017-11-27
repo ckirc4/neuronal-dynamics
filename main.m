@@ -4,16 +4,22 @@
 % (a list of all properties, including a description and default value, is
 % provided). 
 
+
+% Add folders
+addpath(genpath('input'));
+addpath(genpath('data parsing'));
+
 %% View Animation 
 % Opens a window that provides a visual presentation of the neuron
 % simulation. 
 % 
 % Input properties: 
 %   file:   
-%       the link or path to the .swc file that is to be simulated. Enter
-%       empty string to open a dialog window in which the file can be
-%       selected. If the given file/link is invalid, the dialog window will
-%       also open.
+%       the link or full path to the .swc file that is to be simulated. In
+%       order to avoid problems, the standardised version (rather than the
+%       original) should be used. Enter empty string to open a dialog
+%       window in which the file can be selected. If the given file/link is
+%       invalid, the dialog window will also open.
 %       Default: ''        
 %   deltaT: 
 %       the minimum time between frames, in seconds. This is only useful
@@ -45,13 +51,7 @@
 %       Default: false
 
 input = getViewAnimationInput();
-ViewAnimation();
-
-
-
-
-
-
+ViewAnimation(input);
 
 
 %% Templates
