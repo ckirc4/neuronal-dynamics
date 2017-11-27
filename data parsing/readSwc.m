@@ -2,7 +2,7 @@ function output = readSwc(file)
 % reads the SWC file and outputs it as a n*7 matrix
 
 %% Find and open file
-if nargin == 0 || isempty(file)
+if nargin == 0
     file = openDialog(); % returns full file location
 end
 
