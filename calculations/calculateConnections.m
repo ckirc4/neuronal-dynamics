@@ -1,8 +1,14 @@
-function [cC, cP] = calculateConnections(data)
-% cC is a (m-1)*2 matrix that records the two points (columns) each 
-% compartment (row) is connected to.
-% cP is a m*x matrix that records the compartments (columns) each point
-% (row) is connected with. 
+function [compartments, nodes] = calculateConnections(data)
+% Calculates two arrays that directly relate the nodes and compartments
+% (both ways).
+%
+% compartments   (nNodes-1)*2 array 
+%       Which nodes (columns) the compartments (rows) connect
+%       Each compartment must connect two nodes
+% nodes:         nNodes*x array
+%       Which compartments (columns) the nodes (rows) are connected by
+%       Each node is connected by at least one compartment 
+%       (1 if the node is at an endpoint)
 
 m = size(data,1);
 
