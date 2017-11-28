@@ -1,25 +1,29 @@
-function c = findNeighbours(cC, cP)
-% c is an (m-1)*x matrix that lists the neighbouring compartments (columns)
-% for each compartment (row)
+function neighbours = findNeighbours(compartments, nodes)
+% For each compartment (rows), lists the neighbouring compartments
+% (columns)
 
-[m, maxC] = size(cP);
+% maxC: maximum number of compartments that a node is connected by
+[nNodes, maxComp] = size(nodes);
 
-maxN = maxC*2-2; % maximum number of neighbours a compartment can have
-c = zeros(m-1,maxN);
+maxNeigh = maxComp*2-2; % maximum number of neighbours a compartment can have
+neighbours = zeros(nNodes-1, maxNeigh);
 
-for i = 1:m-1 % for each compartment
-    neighbours = zeros(1,maxC*2);
-    points = cC(i,1:2);
+for i = 1:nNodes-1 % for each compartment
+    % thisNeighbours: the neighbours of this compartment
+    % thisNodes: the two nodes that this compartment connects
+    thisNeighbours = zeros(1,maxComp*2); % for now, allow twice as much space; will be handled in tidyUpNeighbours
+    thisNodes = compartments(i,1:2);
     
     % declare all compartments that the points connect as neighbours
-    neighbours(1:maxC) = cP(points(1),:); % includes zeros and duplicates
-    neighbours(maxC+1:maxC*2) = cP(points(2),:);
+    neighbours(1:maxComp) = nodes(points(1),:); % includes zeros and duplicates
+    neighbours(maxComp+1:maxComp*2) = nodes(points(2),:);
     
-    neighbours = tidyUpNeighbours(neighbours,maxN,i);
-    if length(neighbours) > maxN
+    % 
+    neighbours = tidyUpNeighbours(neighbours,maxNeigh,i);
+    if length(neighbours) > maxNeigh
         error('Illegal number of neighbouring compartments')
     end
-    c(i,:) = neighbours;
+    neighbours(i,:) = neighbours;
 end
 
 end
