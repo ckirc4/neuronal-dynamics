@@ -5,7 +5,8 @@ function neighbours = findNeighbours(compartments, nodes)
 % maxComp: maximum number of compartments that connect to a single node
 [nNodes, maxComp] = size(nodes);
 
-maxNeigh = (maxComp-1)*2; % maximum number of neighbours a compartment can have
+maxNeigh = (maxComp-1)*2; % theoretical maximum number of neighbours a compartment can have
+mostNeigh = 0; % actual maximum
 neighbours = zeros(nNodes-1, maxNeigh);
 
 for i = 1:nNodes-1 % for each compartment
@@ -19,18 +20,24 @@ for i = 1:nNodes-1 % for each compartment
     thisNeighbours(1:maxComp) = nodes(thisNodes(1),:);
     thisNeighbours(maxComp+1:maxComp*2) = nodes(thisNodes(2),:);
     
-    % 
-    thisNeighbours = tidyUpNeighbours(thisNeighbours,maxNeigh,i);
-    if length(neighbours) > maxNeigh
+    % n: the number of neighbours of this compartment
+    [thisNeighbours, n] = tidyUpNeighbours(thisNeighbours,maxNeigh,i);
+    if n > maxNeigh
         error('Illegal number of neighbouring compartments for compartment #%i',i)
+    elseif n > mostNeigh
+        mostNeigh = n;
     end
     neighbours(i,:) = thisNeighbours;
 end
 
+% trim zero columns
+surplus = maxNeigh - mostNeigh;
+neighbours = neighbours(:,1:end-surplus);
+
 end
 
 
-function newNeighbours = tidyUpNeighbours(oldNeighbours,maxNeighbours,thisCompartment)
+function [newNeighbours, n] = tidyUpNeighbours(oldNeighbours,maxNeighbours,thisCompartment)
 % removes duplicates and zeros, and sorts neighbours
 
 newNeighbours = zeros(1,maxNeighbours);
