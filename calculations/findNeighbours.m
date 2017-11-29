@@ -2,10 +2,10 @@ function neighbours = findNeighbours(compartments, nodes)
 % For each compartment (rows), lists the neighbouring compartments
 % (columns)
 
-% maxC: maximum number of compartments that a node is connected by
+% maxComp: maximum number of compartments that connect to a single node
 [nNodes, maxComp] = size(nodes);
 
-maxNeigh = maxComp*2-2; % maximum number of neighbours a compartment can have
+maxNeigh = (maxComp-1)*2; % maximum number of neighbours a compartment can have
 neighbours = zeros(nNodes-1, maxNeigh);
 
 for i = 1:nNodes-1 % for each compartment
@@ -14,33 +14,38 @@ for i = 1:nNodes-1 % for each compartment
     thisNeighbours = zeros(1,maxComp*2); % for now, allow twice as much space; will be handled in tidyUpNeighbours
     thisNodes = compartments(i,1:2);
     
-    % declare all compartments that the points connect as neighbours
-    neighbours(1:maxComp) = nodes(points(1),:); % includes zeros and duplicates
-    neighbours(maxComp+1:maxComp*2) = nodes(points(2),:);
+    % declare all compartments connecting to either of these nodes as
+    % neighbours to this compartment
+    thisNeighbours(1:maxComp) = nodes(thisNodes(1),:);
+    thisNeighbours(maxComp+1:maxComp*2) = nodes(thisNodes(2),:);
     
     % 
-    neighbours = tidyUpNeighbours(neighbours,maxNeigh,i);
+    thisNeighbours = tidyUpNeighbours(thisNeighbours,maxNeigh,i);
     if length(neighbours) > maxNeigh
-        error('Illegal number of neighbouring compartments')
+        error('Illegal number of neighbouring compartments for compartment #%i',i)
     end
-    neighbours(i,:) = neighbours;
+    neighbours(i,:) = thisNeighbours;
 end
 
 end
 
 
-function newN = tidyUpNeighbours(oldN,maxN,thisC)
-newN = zeros(1,maxN);
-n = 0;
+function newNeighbours = tidyUpNeighbours(oldNeighbours,maxNeighbours,thisCompartment)
+% removes duplicates and zeros, and sorts neighbours
 
-for i = 1:length(oldN)
-    if oldN(i) == thisC % neighbour can't be this compartment
+newNeighbours = zeros(1,maxNeighbours);
+n = 0; % keep counter of how many (new) neighbours there are
+
+for i = 1:length(oldNeighbours)
+    if oldNeighbours(i) == thisCompartment % this compartment can't be its own neighbour
         continue
-    elseif oldN(i) == 0 % ignore zeros
+    elseif oldNeighbours(i) == 0 % ignore zeros
         continue
-    elseif isempty(find(newN==oldN(i),1)) % ignore duplicates
+    elseif ~isempty(find(newNeighbours==oldNeighbours(i),1)) % ignore duplicates
+        continue
+    else
         n = n+1;
-        newN(n) = oldN(i);
+        newNeighbours(n) = oldNeighbours(i);
     end
 end
 
