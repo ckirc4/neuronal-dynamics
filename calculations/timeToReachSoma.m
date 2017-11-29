@@ -1,8 +1,10 @@
 function [t, rSoma, data] = timeToReachSoma(data)
-% calculates the number of steps it takes for a signal to reach the soma,
-% i.e. the soma compartment that this branch is connected to. soma is
-% treated as a single compartment, where the soma rows in the data are
-% contained within rSoma.
+% For each compartment, calculates the distance (in terms of the number of
+% compartments) from the soma. 
+% The soma is treated as a single compartment,
+% where somaIds contains the data entries (id's) that correspond to the
+% soma. [note: usually, they are two or three, representing a spherical or
+% cylindrical shape respectively]
 
 [m,~] = size(data);
 
