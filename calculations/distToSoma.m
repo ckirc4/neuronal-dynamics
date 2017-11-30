@@ -6,10 +6,15 @@ function [dist, somaNodes] = distToSoma(data)
 % soma. [note: usually, they are two or three, representing a spherical or
 % cylindrical shape respectively]
 
+% The i'th compartment is defined by nodes #parents(i)+1 and #i+1, i.e. the
+% "upper bound" nodes of that compartment and its parent's compartment
+
 [nNodes,~] = size(data);
+nCompartments = nNodes - 1;
 
 types = data(:,2); % the i'th row defines the type of the (i-1)'th compartment
-parents = data(1:end,7); % parents in terms of nodes
+parents = data(2:end,7) - 1; % parents in terms of compartments
+% parents(c) is the parent compartment of compartmnet number c
 
 % count the number of nodes corresponding to the soma
 nSomaNodes = 0;
@@ -30,27 +35,28 @@ end
 % the very first point - check that there are no children of the other soma
 % nodes
 for i = 2:nSomaNodes
-   for j = 2:nNodes
-      if parents(j) == somaNodes(i)
-         % some node is connected to an undesired soma node
-         warning('Node #%i is connected to #%i (soma), but should connect to #1',j,i);
+   for j = 1:nCompartments
+      if parents(j) == somaNodes(i) - 1
+         % some compartment is connected to an undesired soma node
+         warning(['Compartment between nodes #%i and #%i is connected to the one '...
+             'between #%i and #%i (soma), but should connect to #1'],j,j+1,i,i+1);
       end
    end
 end
 
 % calculate distance to reach soma from each compartment
-dist = zeros(nNodes-1,1);
+dist = zeros(nCompartments,1);
 
 for thisNode = 2:nNodes
     thisCompartment = thisNode - 1;
-    if types(parents(thisNode)) == 1 % parent is soma
+    if types(parents(thisCompartment)) == 1 % parent is soma
         if types(thisNode) == 1 % child is soma
             dist(thisCompartment) = 0;
         else
             dist(thisCompartment) = 1;
         end
     else
-        dist(thisCompartment) = dist(parents(thisNode)) + 1; % parent's time + 1
+        dist(thisCompartment) = dist(parents(thisCompartment)) + 1; % parent's time + 1
     end
 end
 
