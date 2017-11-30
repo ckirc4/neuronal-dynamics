@@ -34,12 +34,13 @@ end
 % in the standardised swc files, we expect the dendrites to be children of
 % the very first point - check that there are no children of the other soma
 % nodes
-for i = 2:nSomaNodes
-   for j = 1:nCompartments
-      if parents(j) == somaNodes(i) - 1
+for thisSomaNode = 2:nSomaNodes
+   for thisCompartment = (nSomaNodes-1):nCompartments
+      if parents(thisCompartment) == somaNodes(thisSomaNode) - 1
          % some compartment is connected to an undesired soma node
          warning(['Compartment between nodes #%i and #%i is connected to the one '...
-             'between #%i and #%i (soma), but should connect to #1'],j,j+1,i,i+1);
+             'between #%i and #%i (soma), but should connect to the very first node'], ...
+             thisCompartment,thisCompartment+1,thisSomaNode,thisSomaNode+1); 
       end
    end
 end
@@ -49,15 +50,34 @@ dist = zeros(nCompartments,1);
 
 for thisNode = 2:nNodes
     thisCompartment = thisNode - 1;
-    if types(parents(thisCompartment)) == 1 % parent is soma
-        if types(thisNode) == 1 % child is soma
+    if parents(thisCompartment) == 0 
+        % this compartment is attached to first node (i.e. doesn't have
+        % parent compartment)
+        
+        if types(thisCompartment+1) == 1 % need +1 since types is in terms of nodes
+            % this compartment is part of soma
             dist(thisCompartment) = 0;
         else
+            % directly adjacent to soma
             dist(thisCompartment) = 1;
         end
+        
     else
-        dist(thisCompartment) = dist(parents(thisCompartment)) + 1; % parent's time + 1
+        % this compartment is attached to another compartment
+        dist(thisCompartment) = dist(parents(thisCompartment)) + 1;
     end
+%         
+%         
+%     
+%     if types(parents(thisCompartment)) == 1 % parent is soma
+%         if types(thisNode) == 1 % child is soma
+%             dist(thisCompartment) = 0;
+%         else
+%             dist(thisCompartment) = 1;
+%         end
+%     else
+%         dist(thisCompartment) = dist(parents(thisCompartment)) + 1; % parent's time + 1
+%     end
 end
 
 end
