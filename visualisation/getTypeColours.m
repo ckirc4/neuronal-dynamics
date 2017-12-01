@@ -1,21 +1,23 @@
-function col = getTypeColours(types)
-m = length(types);
+function colours = getTypeColours(types, colourOfType)
+% assigns the colour of every compartment based on its type
 
-col = '';
-for i = 2:m
+nNodes = length(types);
+nCompartments = nNodes - 1;
+
+colours = nans(nCompartments,3);
+for i = 1:nCompartments
     switch types(i)
         case 1 % soma
-            col(i-1) = 'b'; % blue
+            colours(i,:) = colourOfType.soma;
         case 2 % axon
-            col(i-1) = 'c'; % cyan
+            colours(i,:) = colourOfType.axon;
         case 3 % basal dendrite
-            col(i-1) = 'g'; % green
+            colours(i,:) = colourOfType.dendrite;
         case 4 % apical dendrite
-            col(i-1) = 'g'; % green
+            colours(i,:) = colourOfType.dendrite;
         otherwise
-            col(i-1) = 'k'; % black
+            colours(i,:) = [0 0 0]; % black
     end
 end
 
-col = col'; % want column vector
 end
