@@ -66,18 +66,7 @@ for thisNode = 2:nNodes
         % this compartment is attached to another compartment
         dist(thisCompartment) = dist(parents(thisCompartment)) + 1;
     end
-%         
-%         
-%     
-%     if types(parents(thisCompartment)) == 1 % parent is soma
-%         if types(thisNode) == 1 % child is soma
-%             dist(thisCompartment) = 0;
-%         else
-%             dist(thisCompartment) = 1;
-%         end
-%     else
-%         dist(thisCompartment) = dist(parents(thisCompartment)) + 1; % parent's time + 1
-%     end
+
 end
 
 end
