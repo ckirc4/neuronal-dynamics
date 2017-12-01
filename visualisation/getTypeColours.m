@@ -1,8 +1,7 @@
 function colours = getTypeColours(types, colourOfType)
 % assigns the colour of every compartment based on its type
 
-nNodes = length(types);
-nCompartments = nNodes - 1;
+nCompartments = length(types);
 
 colours = nans(nCompartments,3);
 for i = 1:nCompartments
