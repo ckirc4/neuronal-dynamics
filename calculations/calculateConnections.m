@@ -2,10 +2,11 @@ function [compartmentList, nodeList] = calculateConnections(data)
 % Calculates two arrays that directly relate the nodes and compartments
 % (both ways).
 %
-% compartmentList   (nNodes-(nSomaNodes-1)*2 array
+% compartmentList   (nNodes-(nSomaNodes-1))*2 array
 %       A list of compartments (rows) and which nodes (columns) they
 %       connect. 
 %       Each compartment must connect two nodes.
+%       If the first compartment is the soma, then the first node is #0.
 % nodeList:         nNodes*(maxConnections)+1 array
 %       A list of nodes (rows) and which compartments (columns) they are 
 %       connected by.
@@ -23,10 +24,11 @@ for thisNode = 1:nNodes
     end
 end
 
-compartmentList = zeros(nNodes-(nSomaNodes-1),2);
-nodeList = zeros(nNodes,3); % for now, assume largest junction consists of two compartments
+% initialise variables
+compartmentList = nan(nNodes-(nSomaNodes-1),2);
+nodeList = nan(nNodes,3); % for now, assume largest junction consists of two compartments
 
-for i = 1:nNodes-1
+for i = 1:nNodes
     
     % The data rows correspond to the nodes
     % Compartment #1 connects nodes 1 and 2
