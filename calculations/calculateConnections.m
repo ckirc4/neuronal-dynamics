@@ -6,9 +6,10 @@ function [compartmentList, nodeList] = calculateConnections(data)
 %       A list of compartments (rows) and which nodes (columns) they
 %       connect. 
 %       Each compartment must connect two nodes.
-%       If the compartment is the soma, then the first node is #0.
+%       If the compartment is the soma, then the first node is 0, the
+%       second nSomaNodes.
 
-% nodeList:         nNodes*(maxConnections)+1 array
+% nodeList:         nNodes*(maxConnections+1) array
 %       A list of nodes (rows) and which compartments (columns) they are 
 %       connected by.
 %       Each node is connected by at least one compartment.
@@ -37,12 +38,12 @@ for i = 1:nNodes
     % Compartment #i connects nodes x and i+nSomaNodes, where x is the
     % parent (general case).
     
-    if (i <= nSomaNodes)
-        nodeList(i,:) = [1 0]; 
-        nodeSum(i) = 0; % special case
-        compartmentList = [0 nSomaNodes]; % special case
+    if (i <= nSomaNodes) % special case
+        nodeList(i,1) = 1;
+        nodeSum(i) = 0;
+        compartmentList(1,:) = [0 nSomaNodes];
         
-    elseif (i > nSomaNodes)
+    elseif (i > nSomaNodes) % general case
         currentCompartment = i - (nSomaNodes-1); % the compartment number we are considering for this value of i
         
         compartmentList(currentCompartment,2) = i; % upper node
@@ -57,22 +58,25 @@ for i = 1:nNodes
         % positions in the nodes array
         
         assigned = [false false]; % whether each of the nodes has been assigned yet
-        
-        for col = 1:maxCompartments
-            for nodeIndex = 1:2 % first or second node in N
                 
-                if ~assigned(nodeIndex)
-                    thisNode = N(nodeIndex); % the node number we are considering now
-                    if isnan(nodeList(thisNode,col)) % whether the relevant position in the nodes array is occupied yet
-                        nodeList(thisNode,col) = currentCompartment; % this node is connected by the current compartment
-                        assigned(nodeIndex) = true;
-                    elseif (col == maxCompartments) % have reached the max column, but this node hasn't been assigned yet
-                        nodeList(thisNode,col+1) = currentCompartment; % this row is filled up, so extend it, then assign compartment as above
-                        assigned(nodeIndex) = true;
-                    end
+        for nodeIndex = 1:2 % first or second node in N
+            thisNode = N(nodeIndex); % the node number we are considering now
+            
+            for col = 1:maxCompartments
+                if assigned(nodeIndex)
+                    break; % go to next node
                 end
                 
+                if isnan(nodeList(thisNode,col)) % whether the relevant position in the nodes array is occupied yet
+                    nodeList(thisNode,col) = currentCompartment; % this node is connected by the current compartment
+                    assigned(nodeIndex) = true;
+                elseif (col == maxCompartments) % have reached the max column, but this node hasn't been assigned yet
+                    nodeList(:,col+1) = nan; % extend row
+                    nodeList(thisNode,col+1) = currentCompartment; % assign compartment as above
+                    assigned(nodeIndex) = true;
+                end               
             end
+            
         end
         
     end
