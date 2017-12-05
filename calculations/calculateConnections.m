@@ -15,7 +15,9 @@ function [compartmentList, nodeList] = calculateConnections(data)
 %       Each node is connected by at least one compartment.
 %       The last column counts the number of connections (number of nonzero
 %       entries per row).
-%       If a node is part of the soma, the last value is 0.
+%       If a node is exclusively part of the soma, the first value is 1,
+%       and the last value is 0. The node connecting the soma to the rest
+%       of the neuron must have a first value of 1.
 
 nNodes = size(data,1); % number of rows
 nSomaNodes = 0;
@@ -24,6 +26,10 @@ nSomaNodes = 0;
 for thisNode = 1:nNodes
     if (data(thisNode,2) == 1) % soma
         nSomaNodes = nSomaNodes + 1;
+        
+        if thisNode - nSomaNodes > 0
+            error('The soma must be exclusively specified first in the data, but found a soma node at id #%i',thisNode);
+        end
     end
 end
 
@@ -69,16 +75,28 @@ for i = 1:nNodes
                 
                 if isnan(nodeList(thisNode,col)) % whether the relevant position in the nodes array is occupied yet
                     nodeList(thisNode,col) = currentCompartment; % this node is connected by the current compartment
-                    assigned(nodeIndex) = true;
                 elseif (col == maxCompartments) % have reached the max column, but this node hasn't been assigned yet
                     nodeList(:,col+1) = nan; % extend row
                     nodeList(thisNode,col+1) = currentCompartment; % assign compartment as above
-                    assigned(nodeIndex) = true;
-                end               
+                elseif (col > maxCompartments)
+                    error('Something went wrong.');
+                else
+                    continue; % no column available; try next column
+                end
+                assigned(nodeIndex) = true;
+                % increment nodeSum
+                if isnan(nodeSum(thisNode))
+                    nodeSum(thisNode) = 1;
+                else 
+                    nodeSum(thisNode) = nodeSum(thisNode) + 1;
+                end
             end
             
         end
         
     end
 end
+
+% append nodeSum to nodeList
+nodeList = [nodeList nodeSum];
 end
