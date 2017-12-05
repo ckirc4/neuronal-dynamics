@@ -37,11 +37,12 @@ for i = 1:nNodes
     % Compartment #i connects nodes x and i+nSomaNodes, where x is the
     % parent (general case).
     
-    if (i < nSomaNodes)
+    if (i <= nSomaNodes)
         nodeList(i,:) = [1 0]; 
         nodeSum(i) = 0; % special case
+        compartmentList = [0 nSomaNodes]; % special case
         
-    elseif (i >= nSomaNodes)
+    elseif (i > nSomaNodes)
         currentCompartment = i - (nSomaNodes-1); % the compartment number we are considering for this value of i
         
         compartmentList(currentCompartment,2) = i; % upper node
