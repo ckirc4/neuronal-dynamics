@@ -132,12 +132,12 @@ function verifyLineVector(v, k, id)
 
 if any(isnan(v)) || isempty(v)
     showError(sprintf('Unable to parse line at compartment id: %i (parsing error).', k), id);
+elseif length(v) ~= 7
+    showError(sprintf('Unable to parse line at compartment id: %i (expecting 7 values, but found %i).', k, lenth(v)), id);
 elseif v(1) ~= k
     showError(sprintf('Line at compartment id out of sync at id: %i (should be %i).', k, v(7)), id);
 elseif v(7) >= k
     showError(sprintf('Unexpected parent compartment at id: %i (should be less than %i).', k, v(7)), id);
-elseif length(v) ~= 7
-    showError(sprintf('Unable to parse line at compartment id: %i (expecting 7 values, but found %i).', k, lenth(v)), id);
 end
 
 % if this line is reached, parsing must have been successful!
