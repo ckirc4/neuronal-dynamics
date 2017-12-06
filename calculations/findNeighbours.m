@@ -1,24 +1,30 @@
-function neighbours = findNeighbours(compartments, nodes)
+function neighbours = findNeighbours(compartmentList, nodeList)
 % For each compartment (rows), lists the neighbouring compartments
 % (columns)
 
+[nCompartments, ~] = size(compartmentList);
+
 % maxComp: maximum number of compartments that connect to a single node
-[nNodes, maxComp] = size(nodes);
+maxComp = max(nodeList(:,end));
 
 maxNeigh = (maxComp-1)*2; % theoretical maximum number of neighbours a compartment can have
 mostNeigh = 0; % actual maximum
-neighbours = zeros(nNodes-1, maxNeigh);
+neighbours = nan(nCompartments, maxNeigh);
 
-for i = 1:nNodes-1 % for each compartment
+for i = 1:nCompartments % for each compartment
     % thisNeighbours: the neighbours of this compartment
     % thisNodes: the two nodes that this compartment connects
-    thisNeighbours = zeros(1,maxComp*2); % for now, allow twice as much space; will be handled in tidyUpNeighbours
-    thisNodes = compartments(i,1:2);
+    thisNeighbours = nan(1,maxComp*2); % for now, allow twice as much space; will be handled in tidyUpNeighbours
+    thisNodes = compartmentList(i,1:2);
     
     % declare all compartments connecting to either of these nodes as
-    % neighbours to this compartment
-    thisNeighbours(1:maxComp) = nodes(thisNodes(1),:);
-    thisNeighbours(maxComp+1:maxComp*2) = nodes(thisNodes(2),:);
+    % neighbours of this compartment
+    if thisNodes(1) == 0 % only true for soma compartment
+        thisNeighbours(maxComp+1:maxComp*2) = nodeList(1,1:end-1);
+    else % for any other compartment
+        thisNeighbours(1:maxComp) = nodeList(thisNodes(1),1:end-1);
+        thisNeighbours(maxComp+1:maxComp*2) = nodeList(thisNodes(2),1:end-1);
+    end
     
     % n: the number of neighbours of this compartment
     [thisNeighbours, n] = tidyUpNeighbours(thisNeighbours,maxNeigh,i);
@@ -40,13 +46,13 @@ end
 function [newNeighbours, n] = tidyUpNeighbours(oldNeighbours,maxNeighbours,thisCompartment)
 % removes duplicates and zeros, and sorts neighbours
 
-newNeighbours = zeros(1,maxNeighbours);
+newNeighbours = nan(1,maxNeighbours);
 n = 0; % keep counter of how many (new) neighbours there are
 
 for i = 1:length(oldNeighbours)
     if oldNeighbours(i) == thisCompartment % this compartment can't be its own neighbour
         continue
-    elseif oldNeighbours(i) == 0 % ignore zeros
+    elseif isnan(oldNeighbours(i)) % ignore nans
         continue
     elseif ~isempty(find(newNeighbours==oldNeighbours(i),1)) % ignore duplicates
         continue
@@ -55,5 +61,7 @@ for i = 1:length(oldNeighbours)
         newNeighbours(n) = oldNeighbours(i);
     end
 end
+
+newNeighbours = sort(newNeighbours);
 
 end
